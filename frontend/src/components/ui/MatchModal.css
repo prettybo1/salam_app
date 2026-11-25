@@ -1,0 +1,157 @@
+
+.match-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(255, 68, 88, 0.28), rgba(9, 9, 11, 0.96) 65%);
+  backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 56px 24px 40px 24px;
+  color: #fff;
+  z-index: 300;
+  animation: matchFadeIn 0.28s ease-out;
+}
+
+.match-top-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #ff8fa0;
+}
+
+.match-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.match-title {
+  margin: 0 0 8px 0;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  background: linear-gradient(135deg, #ffffff 0%, #ff8fa0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.match-subtitle {
+  margin: 0 0 32px 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.68);
+  max-width: 280px;
+  line-height: 1.45;
+}
+
+/* Два аватара с пересечением */
+.match-avatars-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.match-avatar {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #18181b;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+}
+
+.match-avatar.left {
+  transform: translateX(14px) rotate(-6deg);
+}
+
+.match-avatar.right {
+  transform: translateX(-14px) rotate(6deg);
+}
+
+.match-heart-pill {
+  position: relative;
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff4458 0%, #ff6b81 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 22px rgba(255, 68, 88, 0.45);
+  border: 2px solid #09090b;
+}
+
+/* Кнопки действий */
+.match-actions {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.match-primary-btn {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(135deg, #ff4458 0%, #ff6b81 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(255, 68, 88, 0.35);
+  transition: transform 0.12s ease;
+}
+
+.match-primary-btn:active {
+  transform: scale(0.97);
+}
+
+.match-secondary-btn {
+  width: 100%;
+  padding: 13px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.match-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.match-secondary-btn:active {
+  transform: scale(0.97);
+}
+
+@keyframes matchFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

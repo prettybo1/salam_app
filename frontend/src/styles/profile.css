@@ -1,0 +1,274 @@
+/* Экран профиля */
+.profile-screen {
+  padding: 70px 20px 80px 20px;
+  background: #000;
+  color: #fff;
+  overflow-y: auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Шапка профиля */
+.profile-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: #000;
+  z-index: 10;
+}
+
+.profile-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* Фото и карточка профиля */
+.profile-card-preview {
+  width: 100%;
+  height: 380px; /* Увеличили высоту для классного кадра */
+  border-radius: 24px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 24px;
+  margin-top: 15px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.profile-card-preview::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  border-radius: 20px;
+  z-index: 1;
+}
+
+.profile-card-preview > * {
+  z-index: 2;
+}
+
+.profile-card-preview h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-card-preview p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* Карточка премиум-подписки (Paywall / Monetization) */
+.premium-banner {
+  width: 100%;
+  background: linear-gradient(135deg, #ff4458 0%, #ff6b81 100%);
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 25px rgba(255, 68, 88, 0.3);
+}
+
+.premium-banner-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.premium-banner-top h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.premium-banner p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  opacity: 0.95;
+}
+
+.premium-btn {
+  background: #fff;
+  color: #ff4458;
+  border: none;
+  padding: 12px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.premium-btn:active {
+  transform: scale(0.97);
+}
+
+/* Блок бонусов (Реклама за лайки) */
+.ads-reward-box {
+  width: 100%;
+  background: #18181b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ads-reward-info h5 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ads-reward-info p {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+.watch-ad-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.watch-ad-btn:active {
+  transform: scale(0.95);
+}
+
+.profile-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: #000;
+  z-index: 10;
+}
+
+.edit-profile-icon-btn, .save-btn-top {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Форма редактирования */
+.edit-form-container {
+  padding: 80px 20px 30px 20px;
+  width: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-form-container label {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 5px;
+}
+
+.edit-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.photo-slot {
+  height: 100px;
+  background: #18181b;
+  border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.empty-slot {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-form-container input, .edit-form-container textarea {
+  width: 100%;
+  background: #18181b;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}

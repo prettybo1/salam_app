@@ -1,0 +1,190 @@
+
+.monetization-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeInModal 0.2s ease-out;
+}
+
+.monetization-sheet {
+  width: 100%;
+  max-width: 440px;
+  background: #141418;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: none;
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  padding: 24px 20px 36px 20px;
+  color: #fff;
+  position: relative;
+  animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.monetization-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.monetization-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(255, 68, 88, 0.16);
+  border: 1px solid rgba(255, 68, 88, 0.35);
+  color: #ff6b81;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.monetization-sheet h3 {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.monetization-subtitle {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Вариант 1: Реклама за лайки */
+.reward-ad-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.reward-ad-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.reward-ad-text p {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.reward-ad-btn {
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: transform 0.12s ease;
+}
+
+.reward-ad-btn:active {
+  transform: scale(0.95);
+}
+
+/* Вариант 2: Доступная подписка */
+.sub-offer-card {
+  background: linear-gradient(135deg, #ff4458 0%, #ff6b81 100%);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(255, 68, 88, 0.28);
+}
+
+.sub-offer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sub-offer-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sub-price-tag {
+  background: rgba(0, 0, 0, 0.22);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sub-perks {
+  margin: 0 0 14px 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.sub-cta-btn {
+  width: 100%;
+  background: #fff;
+  color: #ff4458;
+  border: none;
+  padding: 13px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.sub-cta-btn:active {
+  transform: scale(0.97);
+}
+
+.ad-progress-box {
+  text-align: center;
+  padding: 20px 10px;
+}
+
+.ad-progress-box p {
+  margin: 10px 0 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

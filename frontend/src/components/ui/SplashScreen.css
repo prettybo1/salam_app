@@ -1,0 +1,61 @@
+/* src/components/ui/SplashScreen.css */
+.splash-screen {
+  position: absolute;
+  inset: 0;
+  background: #09090b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Анимация пульсации остается */
+  animation: pulseLogo 1.5s infinite alternate ease-in-out;
+}
+
+.splash-logo-tile {
+  width: 100px;
+  height: 100px;
+  background: #ffffff; /* Чистый белый фон плитки */
+  border-radius: 28px; /* Сильное округление углов */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Легкая тень для объема */
+}
+
+/* Стили для новой мягкой и яркой буквы S */
+.splash-s-letter {
+  font-family: 'Quicksand', 'Nunito', sans-serif; /* Мягкие округлые шрифты */
+  font-size: 64px;
+  font-weight: 700;
+  color: #ff4458; /* Наш новый ЯРКИЙ кораллово-розовый цвет */
+  line-height: 1;
+  margin: 0;
+}
+
+.splash-content h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.5px;
+  font-family: 'Quicksand', sans-serif; /* Тоже используем мягкий шрифт для названия */
+}
+
+/* Анимация пульсации */
+@keyframes pulseLogo {
+  0% { transform: scale(0.98); opacity: 0.9; }
+  100% { transform: scale(1.02); opacity: 1; }
+}

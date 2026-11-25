@@ -1,0 +1,35 @@
+.msg-meta-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  vertical-align: bottom;
+}
+
+.msg-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Серый — не отправлено / плохой интернет */
+.msg-status-pending {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* Тёмно-розовый — отправлено */
+.msg-status-sent {
+  color: #be185d;
+}
+
+/* Тёмно-розовый кружочек — прочитано */
+.msg-status-read .msg-read-circle {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #be185d;
+  box-shadow: 0 0 0 2px rgba(190, 24, 93, 0.25);
+  display: inline-block;
+}
