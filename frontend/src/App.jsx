@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import FeedPage from './pages/FeedPage';
 import ChatsPage from './pages/ChatsPage';
 import ProfilePage from './pages/ProfilePage';
 import SplashScreen from './components/ui/SplashScreen';
 import { Flame, MessageCircle, User } from 'lucide-react';
+import { api } from './api/client';
 import './styles/globals.css';
+
+const CURRENT_USER_ID = 1;
 
 const initialChats = [
   {
@@ -37,6 +40,21 @@ const initialMessagesByChat = {
   ],
 };
 
+function formatBackendChats(rows = []) {
+  return rows.map((row) => ({
+    id: row.match_id,
+    partnerId: row.partner_id,
+    name: row.partner_name,
+    url:
+      row.partner_avatar ||
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop',
+    lastMessage: row.last_message || 'Новый матч! Напиши первым',
+    time: 'Сейчас',
+    unreadCount: 0,
+    online: true,
+  }));
+}
+
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState('swipe');
@@ -45,9 +63,25 @@ export default function App() {
   const [chats, setChats] = useState(initialChats);
   const [messagesByChat, setMessagesByChat] = useState(initialMessagesByChat);
 
+  const loadChatsFromBackend = useCallback(async () => {
+    try {
+      const data = await api.getChats(CURRENT_USER_ID);
+      if (Array.isArray(data.chats) && data.chats.length > 0) {
+        setChats(formatBackendChats(data.chats));
+      }
+    } catch {
+      // Если бэкенд не запущен, оставляем локальные initialChats
+    }
+  }, []);
+
+  useEffect(() => {
+    loadChatsFromBackend();
+  }, [loadChatsFromBackend]);
+
   const handleOpenChatWithUser = (user) => {
     setSelectedMatchUser(user || null);
     setCurrentTab('chats');
+    loadChatsFromBackend();
   };
 
   if (isLoading) {
@@ -61,11 +95,16 @@ export default function App() {
   return (
     <div className="mobile-wrapper">
       {currentTab === 'swipe' && (
-        <FeedPage onOpenChats={handleOpenChatWithUser} />
+        <FeedPage
+          currentUserId={CURRENT_USER_ID}
+          onOpenChats={handleOpenChatWithUser}
+          onMatchCreated={loadChatsFromBackend}
+        />
       )}
 
       {currentTab === 'chats' && (
         <ChatsPage
+          currentUserId={CURRENT_USER_ID}
           chats={chats}
           setChats={setChats}
           messagesByChat={messagesByChat}
@@ -90,7 +129,10 @@ export default function App() {
         <button
           type="button"
           className={`nav-item ${currentTab === 'chats' ? 'active' : ''}`}
-          onClick={() => setCurrentTab('chats')}
+          onClick={() => {
+            setCurrentTab('chats');
+            loadChatsFromBackend();
+          }}
         >
           <MessageCircle size={24} color={currentTab === 'chats' ? '#ff4458' : '#71717a'} />
           <span>Чаты</span>

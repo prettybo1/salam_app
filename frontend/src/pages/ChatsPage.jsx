@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, ArrowLeft, Send, X, Check } from 'lucide-react';
+import { api } from '../api/client';
 import '../styles/chats.css';
 
 const initialNewMatches = [
@@ -63,6 +64,7 @@ function DeliveryIndicator({ status = 'sent', onClick }) {
 }
 
 export default function ChatsPage({
+  currentUserId = 1,
   chats,
   setChats,
   messagesByChat,
@@ -83,8 +85,11 @@ export default function ChatsPage({
       initialSelectedUser.url ||
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop';
 
+    const chatId = initialSelectedUser.matchId || initialSelectedUser.id;
+
     const matchedChat = {
-      id: initialSelectedUser.id,
+      id: chatId,
+      partnerId: initialSelectedUser.id,
       name: initialSelectedUser.name,
       url: avatarUrl,
       lastMessage: 'Новый мэтч! Напишите первым',
@@ -110,6 +115,27 @@ export default function ChatsPage({
     onClearInitialUser?.();
   }, [initialSelectedUser, onClearInitialUser, setChats, setMessagesByChat]);
 
+  const loadChatMessages = async (chatId) => {
+    if (!chatId) return;
+    try {
+      const data = await api.getMessages(chatId);
+      if (Array.isArray(data.messages)) {
+        const mapped = data.messages.map((m) => ({
+          id: m.id,
+          fromMe: Number(m.sender_id) === Number(currentUserId),
+          text: m.body,
+          status: m.status || 'sent',
+        }));
+        setMessagesByChat((prev) => ({
+          ...prev,
+          [chatId]: mapped,
+        }));
+      }
+    } catch {
+      // Если бэкенд не запущен, оставляем локальную историю
+    }
+  };
+
   const handleOpenChat = (chat) => {
     setChats((prev) =>
       prev.map((item) =>
@@ -117,6 +143,7 @@ export default function ChatsPage({
       )
     );
     setActiveChat({ ...chat, unreadCount: 0 });
+    loadChatMessages(chat.id);
   };
 
   const handleCycleMessageStatus = (chatId, msgId) => {
@@ -131,24 +158,24 @@ export default function ChatsPage({
     });
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     const trimmed = draftText.trim();
     if (!trimmed || !activeChat) return;
 
     const chatId = activeChat.id;
-    const msgId = Date.now();
+    const tempId = Date.now();
 
-    const newMsg = {
-      id: msgId,
+    const optimisticMsg = {
+      id: tempId,
       fromMe: true,
       text: trimmed,
-      status: 'pending', // сначала серый — отправка / проверка связи
+      status: 'pending',
     };
 
     setMessagesByChat((prev) => ({
       ...prev,
-      [chatId]: [...(prev[chatId] || []), newMsg],
+      [chatId]: [...(prev[chatId] || []), optimisticMsg],
     }));
 
     setChats((prev) =>
@@ -161,18 +188,41 @@ export default function ChatsPage({
 
     setDraftText('');
 
-    // Имитация отправки: через 700 мс переводим в тёмно-розовую галочку
-    setTimeout(() => {
-      setMessagesByChat((prev) => {
-        const list = prev[chatId] || [];
-        return {
-          ...prev,
-          [chatId]: list.map((m) =>
-            m.id === msgId && m.status === 'pending' ? { ...m, status: 'sent' } : m
-          ),
-        };
+    try {
+      const saved = await api.sendMessage({
+        matchId: chatId,
+        senderId: currentUserId,
+        body: trimmed,
       });
-    }, 700);
+
+      const realId = saved?.message?.id ?? tempId;
+      const realStatus = saved?.message?.status || 'sent';
+
+      setTimeout(() => {
+        setMessagesByChat((prev) => {
+          const list = prev[chatId] || [];
+          return {
+            ...prev,
+            [chatId]: list.map((m) =>
+              m.id === tempId ? { ...m, id: realId, status: realStatus } : m
+            ),
+          };
+        });
+      }, 400);
+    } catch {
+      // Фолбэк для локального режима без бэкенда
+      setTimeout(() => {
+        setMessagesByChat((prev) => {
+          const list = prev[chatId] || [];
+          return {
+            ...prev,
+            [chatId]: list.map((m) =>
+              m.id === tempId && m.status === 'pending' ? { ...m, status: 'sent' } : m
+            ),
+          };
+        });
+      }, 700);
+    }
   };
 
   const filteredChats = useMemo(() => {
