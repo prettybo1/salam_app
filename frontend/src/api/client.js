@@ -1,9 +1,24 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const TOKEN_KEY = "salam_auth_token";
+
+export function getAuthToken() {
+  return localStorage.getItem(TOKEN_KEY) || "";
+}
+
+export function setAuthToken(token) {
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+}
 
 async function request(path, options = {}) {
+  const token = getAuthToken();
   const res = await fetch(`${API_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
     ...options,
@@ -21,39 +36,84 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  getFeed({ userId = 1, city = "", category = "" } = {}) {
-    const params = new URLSearchParams({ userId: String(userId) });
+  async uploadPhoto(file) {
+    const token = getAuthToken();
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    const res = await fetch(`${API_URL}/api/profile/upload-photo`, {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.message || data.error || "Ошибка загрузки фото");
+    }
+    return data;
+  },
+
+  updateProfile(payload) {
+    return request("/api/profile", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+  register({ phone, password, name, age, city }) {
+    return request("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ phone, password, name, age, city }),
+    });
+  },
+
+  login({ phone, password }) {
+    return request("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ phone, password }),
+    });
+  },
+
+  getMe() {
+    return request("/api/auth/me");
+  },
+
+  getFeed({ city = "", category = "" } = {}) {
+    const params = new URLSearchParams();
     if (city) params.set("city", city);
     if (category) params.set("category", category);
-    return request(`/api/feed?${params.toString()}`);
+    const qs = params.toString();
+    return request(`/api/feed${qs ? `?${qs}` : ""}`);
   },
 
-  sendSwipe({ fromUserId = 1, toUserId, action }) {
+  sendSwipe({ toUserId, action }) {
     return request("/api/swipes", {
       method: "POST",
-      body: JSON.stringify({ fromUserId, toUserId, action }),
+      body: JSON.stringify({ toUserId, action }),
     });
   },
 
-  rewardAd({ userId = 1, rewardLikes = 5 }) {
+  rewardAd({ rewardLikes = 5 } = {}) {
     return request("/api/monetization/reward-ad", {
       method: "POST",
-      body: JSON.stringify({ userId, rewardLikes }),
+      body: JSON.stringify({ rewardLikes }),
     });
   },
 
-  getChats(userId = 1) {
-    return request(`/api/chats/${userId}`);
+  getChats() {
+    return request("/api/chats");
   },
 
   getMessages(matchId) {
     return request(`/api/chats/${matchId}/messages`);
   },
 
-  sendMessage({ matchId, senderId = 1, body }) {
+  sendMessage({ matchId, body }) {
     return request(`/api/chats/${matchId}/messages`, {
       method: "POST",
-      body: JSON.stringify({ senderId, body }),
+      body: JSON.stringify({ body }),
     });
   },
 };

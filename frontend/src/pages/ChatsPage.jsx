@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Search, ArrowLeft, Send, X, Check } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Search, ArrowLeft, Send, X, Check, CheckCheck } from 'lucide-react';
 import { api } from '../api/client';
 import '../styles/chats.css';
 
@@ -22,20 +22,27 @@ const initialNewMatches = [
 ];
 
 const nextStatusMap = {
-  pending: 'sent',
-  sent: 'read',
+  pending: 'delivered',
+  sent: 'delivered',
+  delivered: 'read',
   read: 'pending',
 };
 
-function DeliveryIndicator({ status = 'sent', onClick }) {
+function DeliveryIndicator({ status = 'delivered', onClick }) {
   if (status === 'pending') {
     return (
       <span
         className="msg-status msg-status-pending"
-        title="Не отправлено (плохое соединение) — нажмите для теста статуса"
+        title="Отправляется... — нажмите для теста статуса"
         onClick={onClick}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          color: 'currentColor',
+          opacity: 0.75,
+        }}
       >
-        <Check size={13} strokeWidth={2.5} />
+        <Check size={13} strokeWidth={2.4} />
       </span>
     );
   }
@@ -46,6 +53,11 @@ function DeliveryIndicator({ status = 'sent', onClick }) {
         className="msg-status msg-status-read"
         title="Прочитано — нажмите для теста статуса"
         onClick={onClick}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          color: 'currentColor',
+        }}
       >
         <span className="msg-read-circle" />
       </span>
@@ -55,27 +67,138 @@ function DeliveryIndicator({ status = 'sent', onClick }) {
   return (
     <span
       className="msg-status msg-status-sent"
-      title="Отправлено — нажмите для теста статуса"
+      title="Доставлено — нажмите для теста статуса"
       onClick={onClick}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        color: 'currentColor',
+      }}
     >
-      <Check size={13} strokeWidth={2.5} />
+      <CheckCheck size={14} strokeWidth={2.3} />
     </span>
   );
 }
 
+function showBrowserNotification(title, body, icon) {
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    try {
+      new Notification(title, { body, icon });
+    } catch {
+      // Игнорируем ошибку создания уведомления
+    }
+  }
+}
+
 export default function ChatsPage({
-  currentUserId = 1,
+  currentUserId,
+  socket,
   chats,
   setChats,
   messagesByChat,
   setMessagesByChat,
   initialSelectedUser,
   onClearInitialUser,
+  onActiveChatChange,
 }) {
   const [activeChat, setActiveChat] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [draftText, setDraftText] = useState('');
+
+  const activeChatIdRef = useRef(null);
+  const chatsRef = useRef(chats);
+
+  useEffect(() => {
+    const id = activeChat?.id ?? null;
+    activeChatIdRef.current = id;
+    onActiveChatChange?.(id);
+  }, [activeChat, onActiveChatChange]);
+
+  useEffect(() => {
+    chatsRef.current = chats;
+  }, [chats]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMessagesRead = ({ matchId, readerId, messageIds }) => {
+      if (Number(readerId) === Number(currentUserId)) return;
+      const chatId = Number(matchId);
+      const idSet = new Set((messageIds || []).map(Number));
+
+      setMessagesByChat((prev) => {
+        const list = prev[chatId] || [];
+        return {
+          ...prev,
+          [chatId]: list.map((m) =>
+            m.fromMe && (idSet.size === 0 || idSet.has(Number(m.id)))
+              ? { ...m, status: 'read' }
+              : m
+          ),
+        };
+      });
+    };
+
+    const handleNewMessageNotify = (msg) => {
+      const chatId = Number(msg.match_id);
+      if (!chatId) return;
+
+      const isFromMe = Number(msg.sender_id) === Number(currentUserId);
+      const isCurrentOpenChat = Number(activeChatIdRef.current) === chatId;
+
+      if (!isFromMe && isCurrentOpenChat && !document.hidden) {
+        socket.emit('mark_read', { matchId: chatId });
+      }
+
+      if (!isFromMe && (!isCurrentOpenChat || document.hidden)) {
+        const senderChat = (chatsRef.current || []).find((c) => Number(c.id) === chatId);
+        showBrowserNotification(
+          senderChat?.name ? `Новое сообщение от ${senderChat.name}` : 'Новое сообщение в Salam',
+          msg.body,
+          senderChat?.url
+        );
+      }
+    };
+
+    socket.on('messages_read', handleMessagesRead);
+    socket.on('new_message', handleNewMessageNotify);
+
+    return () => {
+      socket.off('messages_read', handleMessagesRead);
+      socket.off('new_message', handleNewMessageNotify);
+    };
+  }, [socket, currentUserId, setMessagesByChat]);
+
+  useEffect(() => {
+    if (!socket || !socket.connected) return;
+    (chats || []).forEach((c) => {
+      if (c?.id) {
+        socket.emit('join_match', { matchId: c.id });
+      }
+    });
+  }, [socket, chats]);
+
+  useEffect(() => {
+    const chatId = activeChat?.id;
+    if (!socket || !chatId) return;
+
+    socket.emit('join_match', { matchId: chatId });
+    socket.emit('mark_read', { matchId: chatId });
+
+    return () => {
+      socket.emit('leave_match', { matchId: chatId });
+    };
+  }, [socket, activeChat?.id]);
 
   useEffect(() => {
     if (!initialSelectedUser) return;
@@ -124,15 +247,26 @@ export default function ChatsPage({
           id: m.id,
           fromMe: Number(m.sender_id) === Number(currentUserId),
           text: m.body,
-          status: m.status || 'sent',
+          status: m.status === 'sent' ? 'delivered' : m.status || 'delivered',
         }));
         setMessagesByChat((prev) => ({
           ...prev,
           [chatId]: mapped,
         }));
+
+        if (mapped.length > 0) {
+          const lastText = mapped[mapped.length - 1].text;
+          setChats((prev) =>
+            prev.map((c) =>
+              Number(c.id) === Number(chatId)
+                ? { ...c, lastMessage: lastText, unreadCount: 0 }
+                : c
+            )
+          );
+        }
       }
     } catch {
-      // Если бэкенд не запущен, оставляем локальную историю
+      // Оставляем локальную историю, если бэкенд недоступен
     }
   };
 
@@ -144,6 +278,9 @@ export default function ChatsPage({
     );
     setActiveChat({ ...chat, unreadCount: 0 });
     loadChatMessages(chat.id);
+    if (socket && socket.connected) {
+      socket.emit('mark_read', { matchId: chat.id });
+    }
   };
 
   const handleCycleMessageStatus = (chatId, msgId) => {
@@ -152,7 +289,7 @@ export default function ChatsPage({
       return {
         ...prev,
         [chatId]: list.map((m) =>
-          m.id === msgId ? { ...m, status: nextStatusMap[m.status || 'sent'] } : m
+          m.id === msgId ? { ...m, status: nextStatusMap[m.status || 'delivered'] } : m
         ),
       };
     });
@@ -188,6 +325,11 @@ export default function ChatsPage({
 
     setDraftText('');
 
+    if (socket && socket.connected) {
+      socket.emit('send_message', { matchId: chatId, body: trimmed });
+      return;
+    }
+
     try {
       const saved = await api.sendMessage({
         matchId: chatId,
@@ -196,32 +338,28 @@ export default function ChatsPage({
       });
 
       const realId = saved?.message?.id ?? tempId;
-      const realStatus = saved?.message?.status || 'sent';
+      const realStatus =
+        saved?.message?.status === 'sent' ? 'delivered' : saved?.message?.status || 'delivered';
 
-      setTimeout(() => {
-        setMessagesByChat((prev) => {
-          const list = prev[chatId] || [];
-          return {
-            ...prev,
-            [chatId]: list.map((m) =>
-              m.id === tempId ? { ...m, id: realId, status: realStatus } : m
-            ),
-          };
-        });
-      }, 400);
+      setMessagesByChat((prev) => {
+        const list = prev[chatId] || [];
+        return {
+          ...prev,
+          [chatId]: list.map((m) =>
+            m.id === tempId ? { ...m, id: realId, status: realStatus } : m
+          ),
+        };
+      });
     } catch {
-      // Фолбэк для локального режима без бэкенда
-      setTimeout(() => {
-        setMessagesByChat((prev) => {
-          const list = prev[chatId] || [];
-          return {
-            ...prev,
-            [chatId]: list.map((m) =>
-              m.id === tempId && m.status === 'pending' ? { ...m, status: 'sent' } : m
-            ),
-          };
-        });
-      }, 700);
+      setMessagesByChat((prev) => {
+        const list = prev[chatId] || [];
+        return {
+          ...prev,
+          [chatId]: list.map((m) =>
+            m.id === tempId && m.status === 'pending' ? { ...m, status: 'delivered' } : m
+          ),
+        };
+      });
     }
   };
 
@@ -234,6 +372,8 @@ export default function ChatsPage({
         (c.lastMessage && c.lastMessage.toLowerCase().includes(q))
     );
   }, [chats, searchQuery]);
+
+  const socketConnected = Boolean(socket?.connected);
 
   if (activeChat) {
     const currentMessages = messagesByChat[activeChat.id] || [];
@@ -254,7 +394,7 @@ export default function ChatsPage({
 
           <div className="chat-room-title">
             <h3>{activeChat.name}</h3>
-            <span>{activeChat.online ? 'онлайн' : 'был(а) недавно'}</span>
+            <span>{socketConnected ? 'онлайн' : 'подключение...'}</span>
           </div>
         </header>
 
@@ -268,16 +408,21 @@ export default function ChatsPage({
               <div
                 key={msg.id}
                 className={`message-bubble ${msg.fromMe ? 'my-message' : 'their-message'}`}
+                style={
+                  msg.fromMe
+                    ? { display: 'flex', alignItems: 'center', gap: 6 }
+                    : undefined
+                }
               >
-                <span>{msg.text}</span>
                 {msg.fromMe && (
-                  <span className="msg-meta-row">
+                  <span className="msg-meta-row" style={{ order: -1 }}>
                     <DeliveryIndicator
-                      status={msg.status || 'sent'}
+                      status={msg.status || 'delivered'}
                       onClick={() => handleCycleMessageStatus(activeChat.id, msg.id)}
                     />
                   </span>
                 )}
+                <span>{msg.text}</span>
               </div>
             ))
           )}

@@ -253,3 +253,13 @@
   justify-content: center;
   cursor: pointer;
 }
+
+.msg-read-circle {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: transparent;
+  box-sizing: border-box;
+}
